@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-app
+
+  SAM Template for streaming tweets for a specified number of times 
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Environment:
+      Variables:
+        REGION_NAME: us-west-2
+
+
+Resources:
+  TwitStreamFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: twit_stream/
+      Handler: lambda_twitter_stream.lambda_handler
+      Runtime: python3.6
+      Timeout: 150 
+      Environment:
+
+        Variables:
+          TWIT_TABLE_NAME: !Ref "TwitStream"
+          CONSUMER_KEY: '{{resolve:secretsmanager:prod/twit_api:SecretString:CONSUMER_KEY}}'
+          CONSUMER_SECRET: '{{resolve:secretsmanager:prod/twit_api:SecretString:CONSUMER_SECRET}}'
+          ACCESS_TOKEN: '{{resolve:secretsmanager:prod/twit_api:SecretString:ACCESS_TOKEN}}'
+          ACCESS_SECRET: '{{resolve:secretsmanager:prod/twit_api:SecretString:ACCESS_SECRET}}'
+        
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref "TwitStream"
+
+  IterateFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: twit_stream/
+      Handler: lambda_iterate.lambda_handler
+      Runtime: python3.6
+ 
+               
+  TwitStream:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: stream_tweets 
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+       
+
+  StatesExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+
+
+  MyStateMachine:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      StateMachineName: TwitStreamMachine
+      DefinitionString:
+        !Sub
+          - |-
+            {
+              "Comment": "Run Lambda a specified number of times",
+              "StartAt": "ConfigureCount",
+              "States": {
+                  
+                  "ConfigureCount": {
+                      "Type": "Pass",
+                      "Result": {
+                          "count": 3,
+                          "index": 0,
+                          "step": 1
+                      },
+                      "ResultPath": "$.iterator",
+                      "Next": "Iterator"
+                  },
+                  "Iterator": {
+                      "Type": "Task",
+                      "Resource": "${iteratelambdaArn}",
+                      "ResultPath": "$.iterator",
+                      "Next": "IsCountReached"
+                  },
+                  "IsCountReached": {
+                      "Type": "Choice",
+                      "Choices": [
+                          {
+                              "Variable": "$.iterator.continuation",
+                              "BooleanEquals": true,
+                              "Next": "StreamTweets"
+                          }
+                      ],
+                      "Default": "Done"
+                  },
+                  "StreamTweets": {
+                      "Comment": "Your application logic, to run a specific number of times",
+                      "Type": "Task",
+                      "Resource": "${lambdaArn}",
+                      "ResultPath": "$.result",
+                      "Next": "Iterator"
+                  },
+                  "Done": {
+                      "Type": "Pass",
+                      "End": true
+                    
+                  }
+              }
+
+            }
+          - lambdaArn: !GetAtt TwitStreamFunction.Arn
+            iteratelambdaArn:  !GetAtt IterateFunction.Arn
+      RoleArn: !GetAtt [ StatesExecutionRole, Arn ]
+
+
+Outputs:
+  TwitStreamFunction:
+    Description: "Twitter Stream Lambda Function ARN"
+    Value: !GetAtt TwitStreamFunction.Arn
+  StatesExecutionRole:
+    Description: "Implicit IAM Role created for Twitter Stream Function"
+    Value: !GetAtt TwitStreamFunction.Arn
+
