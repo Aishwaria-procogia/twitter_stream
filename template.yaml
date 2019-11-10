@@ -29,7 +29,8 @@ Resources:
           CONSUMER_SECRET: '{{resolve:secretsmanager:prod/twit_api:SecretString:CONSUMER_SECRET}}'
           ACCESS_TOKEN: '{{resolve:secretsmanager:prod/twit_api:SecretString:ACCESS_TOKEN}}'
           ACCESS_SECRET: '{{resolve:secretsmanager:prod/twit_api:SecretString:ACCESS_SECRET}}'
-        
+          HASHTAGS: '#aws,#seahawks,#python,#illinois'
+
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref "TwitStream"
