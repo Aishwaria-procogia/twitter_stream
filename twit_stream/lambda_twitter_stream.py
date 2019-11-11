@@ -37,7 +37,8 @@ class StdOutListener(StreamListener):
                                         all_data['created_at'] else None,
                                         'text':all_data['text']  if
                                         all_data['text'] else None,
-                                        'batch_number':1})
+                                        'hashtags':hashtags.split(',')
+                                       })
 
     def on_error(self, status):
         print (status)
