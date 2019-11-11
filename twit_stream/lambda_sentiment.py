@@ -6,7 +6,7 @@ import decimal
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def update_to_dynamo(tweet_id, pos_tweet_sentiment, neg_tweet_seniment):
+def update_to_dynamo(tweet_id, pos_tweet_sentiment, neg_tweet_sentiment):
     client = boto3.resource('dynamodb')
     table = client.Table('stream_tweets')
 
@@ -14,8 +14,7 @@ def update_to_dynamo(tweet_id, pos_tweet_sentiment, neg_tweet_seniment):
         Key={
             'id': tweet_id
         },
-        UpdateExpression='set positive_sentiment = :pos_sentiment, negative_sentiment =
-        :neg_sentiment',
+        UpdateExpression='set positive_sentiment = :pos_sentiment, negative_sentiment = :neg_sentiment',
         ExpressionAttributeValues={
             ':pos_sentiment': pos_tweet_sentiment,
             ':neg_sentiment': neg_tweet_sentiment
