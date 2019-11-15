@@ -17,7 +17,11 @@ consumer_key = os.environ['CONSUMER_KEY']
 consumer_secret = os.environ['CONSUMER_SECRET']
 access_key =  os.environ['ACCESS_TOKEN']
 access_secret = os.environ['ACCESS_SECRET']
-hashtags = os.environ['HASHTAGS']
+#hashtags = os.environ['HASHTAGS']
+team1_hashtags = os.environ['TEAM1_HASHTAGS']
+team2_hashtags = os.environ['TEAM2_HASHTAGS']
+
+hashtags = list(set(team1_hashtags.split(',') + team2_hashtags.split(',')))
 
 
 class StdOutListener(StreamListener):
@@ -37,7 +41,7 @@ class StdOutListener(StreamListener):
                                         all_data['created_at'] else None,
                                         'text':all_data['text']  if
                                         all_data['text'] else None,
-                                        'hashtags':hashtags.split(',')
+                                        'hashtags':set(hashtags)
                                        })
 
     def on_error(self, status):
@@ -50,7 +54,7 @@ def lambda_handler(event, context):
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_key, access_secret)
     stream = Stream(auth, l)
-    stream.filter(track=hashtags.split(','), async = True)
+    stream.filter(track=hashtags, async = True)
     time.sleep(runtime) #halts the control for runtime seconds
 
     stream.disconnect()
