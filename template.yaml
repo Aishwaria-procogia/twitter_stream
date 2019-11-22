@@ -12,8 +12,8 @@ Globals:
       Variables:
         REGION_NAME: us-west-2
         HASHTAGS:  '#aws,#seahawks,#python,#illinois,#mls,#sounders'
-        TEAM1_HASHTAGS: '#Bears, #aws, #python, #sounders, #UK'
-        TEAM2_HASHTAGS: '#Packers, #seahawks, #microsoft'
+        TEAM1_HASHTAGS: '#KCChiefs,Chiefs,#Chiefs,#ChiefsFootball,#Football,#MNF'
+        TEAM2_HASHTAGS: '#Chargers,Chargers,#ChargersFootball,#Football,#MNF'
 
 Resources:
   TwitStreamFunction:
@@ -22,7 +22,7 @@ Resources:
       CodeUri: twit_stream/
       Handler: lambda_twitter_stream.lambda_handler
       Runtime: python3.6
-      Timeout: 150 
+      Timeout: 210
       Environment:
 
         Variables:
@@ -171,7 +171,7 @@ Resources:
                   "ConfigureCount": {
                       "Type": "Pass",
                       "Result": {
-                          "count": 3,
+                          "count": 5,
                           "index": 0,
                           "step": 1
                       },
