@@ -11,10 +11,9 @@ Globals:
     Environment:
       Variables:
         REGION_NAME: us-west-2
-        HASHTAGS:  '#aws,#seahawks,#python,#illinois,#mls,#sounders'
-        TEAM1_HASHTAGS: '#KCChiefs,Chiefs,#Chiefs,#ChiefsFootball,#Football,#MNF'
-        TEAM2_HASHTAGS: '#Chargers,Chargers,#ChargersFootball,#Football,#MNF'
-
+        TEAM1_HASHTAGS: '#Packers,#PackersFootball,#GBFootball,#GBPackers'
+        TEAM2_HASHTAGS: '#SFFootball,#49ers,#49ersFootball,#49ers'
+        
 Resources:
   TwitStreamFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -22,7 +21,7 @@ Resources:
       CodeUri: twit_stream/
       Handler: lambda_twitter_stream.lambda_handler
       Runtime: python3.6
-      Timeout: 210
+      Timeout: 900
       Environment:
 
         Variables:
@@ -31,7 +30,6 @@ Resources:
           CONSUMER_SECRET: '{{resolve:secretsmanager:prod/twit_api:SecretString:CONSUMER_SECRET}}'
           ACCESS_TOKEN: '{{resolve:secretsmanager:prod/twit_api:SecretString:ACCESS_TOKEN}}'
           ACCESS_SECRET: '{{resolve:secretsmanager:prod/twit_api:SecretString:ACCESS_SECRET}}'
-          # HASHTAGS: '#aws,#seahawks,#python,#illinois'
 
       Policies:
         - DynamoDBCrudPolicy:
@@ -43,6 +41,7 @@ Resources:
       CodeUri: twit_stream/
       Handler: lambda_iterate.lambda_handler
       Runtime: python3.6
+      Timeout: 30
 
   ScoreTweetFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -68,22 +67,6 @@ Resources:
         WriteCapacityUnits: 5
       StreamSpecification:
         StreamViewType: NEW_IMAGE
-
-
-  SummaryTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: metric_summary 
-      AttributeDefinitions:
-      - AttributeName: metric_name 
-        AttributeType: S
-      KeySchema:
-      - AttributeName: metric_name 
-        KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-
 
   SentimentLambdaRole:       
     Type: "AWS::IAM::Role"
@@ -171,7 +154,7 @@ Resources:
                   "ConfigureCount": {
                       "Type": "Pass",
                       "Result": {
-                          "count": 5,
+                          "count": 6,
                           "index": 0,
                           "step": 1
                       },

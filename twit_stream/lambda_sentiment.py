@@ -1,5 +1,4 @@
 import boto3
-import json
 import logging
 import decimal
 
@@ -24,77 +23,28 @@ def update_to_stream_dynamo(tweet_id, pos_tweet_sentiment, neg_tweet_sentiment):
 
     return response, tweet_id
 
-def update_to_metric_dynamo(tweet_id, pos_tweet_sentiment, neg_tweet_sentiment):
-    client = boto3.resource('dynamodb')
-    table = client.Table('metric_summary')
-    response = table.get_item(
-        Key={
-            'metric_name': 'total_row'
-        }
-    )
-
-    logger.info(f'response {response}')
-
-    try:
-        new_tot_neg = response['Item']['total_neg'] + neg_tweet_sentiment
-        new_tot_pos = response['Item']['total_pos'] + pos_tweet_sentiment
-        new_tot_count = response['Item']['total_count'] + 1
-        new_avg_neg = new_tot_neg / new_tot_count
-        new_avg_pos = new_tot_pos / new_tot_count
-        logger.info('UpdatingRow')
-        update_response = table.update_item(
-            Key={
-                'metric_name': 'total_row'
-            },
-            UpdateExpression='set total_neg = :neg_value, total_pos = :pos_value, total_count = :total_count, avg_neg = :avg_neg_value, avg_pos = :avg_pos_value',
-            ExpressionAttributeValues={
-                ':neg_value': new_tot_neg,
-                ':pos_value': new_tot_pos,
-                ':total_count': new_tot_count,
-                ':avg_neg_value': new_avg_neg,
-                ':avg_pos_value': new_avg_pos
-            }
-        )
-        response = push_metric(new_avg_pos, new_avg_neg)
-
-    except:
-        logger.info('Adding first row')
-        put_response = table.put_item(
-            Item={
-                'metric_name': 'total_row',
-                'total_neg':neg_tweet_sentiment,
-                'total_pos':pos_tweet_sentiment,
-                'total_count': 1,
-                'avg_neg': neg_tweet_sentiment / 1,
-                'avg_pos': pos_tweet_sentiment / 1
-            }
-        )
-
-
-def push_metric(pos_value, neg_value):
-    cloudwatch = boto3.client('cloudwatch')
-    response = cloudwatch.put_metric_data(
-        MetricData = [
-            {
-                'MetricName' : 'Positive Sentiment',
-                'Dimensions': [
-                    {
-                        'Name': 'Test1',
-                        'Value': 'Test2',
-                    },
-                ],
-                'Unit': 'None',
-                'Value': pos_value
-            },
-        ],
-        Namespace = 'PositiveSentiment'
-    )
-
-    return response
 
 def push_team1_metric(pos_value, neg_value):
     cloudwatch = boto3.client('cloudwatch')
-    response = cloudwatch.put_metric_data(
+    neg_response = cloudwatch.put_metric_data(
+        MetricData = [
+            {
+                'MetricName' : 'Negative Sentiment',
+                'Dimensions': [
+                    {
+                        'Name': 'Game_Sentiment',
+                        'Value': 'Team_1',
+                    },
+                ],
+                'Unit': 'None',
+                'Value': neg_value
+            },
+        ],
+        Namespace = 'Sentiment'
+    )
+
+    cloudwatch = boto3.client('cloudwatch')
+    pos_response = cloudwatch.put_metric_data(
         MetricData = [
             {
                 'MetricName' : 'Positive Sentiment',
@@ -109,14 +59,30 @@ def push_team1_metric(pos_value, neg_value):
             },
         ],
         Namespace = 'Sentiment'
-    )
-
-    return response
+    )    
+    return pos_response, neg_response
 
 
 def push_team2_metric(pos_value, neg_value):
     cloudwatch = boto3.client('cloudwatch')
-    response = cloudwatch.put_metric_data(
+    neg_response = cloudwatch.put_metric_data(
+        MetricData = [
+            {
+                'MetricName' : 'Negative Sentiment',
+                'Dimensions': [
+                    {
+                        'Name': 'Game_Sentiment',
+                        'Value': 'Team2',
+                    },
+                ],
+                'Unit': 'None',
+                'Value': neg_value
+            },
+        ],
+        Namespace = 'Sentiment'
+    )
+
+    pos_response = cloudwatch.put_metric_data(
         MetricData = [
             {
                 'MetricName' : 'Positive Sentiment',
@@ -130,10 +96,10 @@ def push_team2_metric(pos_value, neg_value):
                 'Value': pos_value
             },
         ],
-        Namespace = 'PositiveSentiment'
-    )
-
-    return response
+        Namespace = 'Sentiment'
+    )    
+    
+    return pos_response, neg_response
 
 
 def update_to_decimal(obj):
@@ -184,9 +150,7 @@ def lambda_handler(event, context):
         logger.info("pushing team2 metric: {pos_sentiment}")
         push_team2_metric(pos_sentiment, neg_sentiment)
     
-    
-    
-    metric_response = update_to_metric_dynamo(tweet_id, pos_sentiment, neg_sentiment)
+        #metric_response = update_to_metric_dynamo(tweet_id, pos_sentiment, neg_sentiment)
 
 
     return True

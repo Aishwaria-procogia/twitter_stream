@@ -17,7 +17,6 @@ consumer_key = os.environ['CONSUMER_KEY']
 consumer_secret = os.environ['CONSUMER_SECRET']
 access_key =  os.environ['ACCESS_TOKEN']
 access_secret = os.environ['ACCESS_SECRET']
-#hashtags = os.environ['HASHTAGS']
 team1_hashtags = os.environ['TEAM1_HASHTAGS']
 team2_hashtags = os.environ['TEAM2_HASHTAGS']
 
@@ -40,7 +39,6 @@ class StdOutListener(StreamListener):
         tweet_hashtags =[]
         all_data = json.loads(data)
         
-        #if all_data['truncated'] == True:
         try:
             tweet_text = all_data['extended_tweet']['full_text']
         except:
@@ -97,7 +95,7 @@ class StdOutListener(StreamListener):
         print (f'error: {status}')
 
 def lambda_handler(event, context):
-    runtime = 200
+    runtime = 890
     logger.info(f"lambda connected...")
     l = StdOutListener()
     auth = OAuthHandler(consumer_key, consumer_secret)
