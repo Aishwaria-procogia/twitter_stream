@@ -10,9 +10,9 @@ Globals:
   Function:
     Environment:
       Variables:
-        REGION_NAME: us-west-2
-        TEAM1_HASHTAGS: '#Packers,#PackersFootball,#GBFootball,#GBPackers'
-        TEAM2_HASHTAGS: '#SFFootball,#49ers,#49ersFootball,#49ers'
+        #REGION_NAME: us-west-2
+        TEAM1_HASHTAGS: '#Blackhawks,#HawksHockey'
+        TEAM2_HASHTAGS: '#Stars,#StarsHockey'
         
 Resources:
   TwitStreamFunction:
