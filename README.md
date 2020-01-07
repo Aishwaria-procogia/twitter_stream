@@ -5,7 +5,7 @@ The purpose of this repo is to create a serverlesss tool in AWS which will colle
 
 
 # Model Overview
-![twitter_stream/](Overal_architecture.png)
+![twitter_stream/](Overall_architecture.png.png)
 
 The process is comprised of 3 areas:
 * Stream and initial storage
