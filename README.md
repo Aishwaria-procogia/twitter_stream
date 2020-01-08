@@ -46,15 +46,13 @@ sam deploy — template-file ./packaged.yaml — stack-name twitstream-stack —
  ├ lambda_twitter_stream.py (TO BE DELETED) 
  ├ template.yaml (Cloudformation template file to create AWS resources and define execution process)
  ├ twitter_steamer.py (python file that is used to test outside of AWS, same as lambda_twitter_stream behavior) 
- ├ [DIR] twit_stream
+ ├ Overall_architecture.png (picture of the architecture of the project used in the README.md)
+ └ [DIR] twit_stream
      ┬  
      ├ lambda_sentiment.py (python file used to create lambda to evaluate sentiment)
      ├ lambda_twitter_stream.py (python file used to create lambda to clean and stream tweets)
      └ requirements.txt (CSV file containing all of the data from the RECS)  
- └ [DIR] images  
-     ┬  
-     └ TBD 
-
+ 
 </pre>
 
 
