@@ -58,3 +58,4 @@ sam deploy — template-file ./packaged.yaml — stack-name twitstream-stack —
 
 # Envirnment
 ## Libraries
+The libraries used are defined in the template yaml (for the Python code) and in the requirements.txt
